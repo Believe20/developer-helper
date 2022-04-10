@@ -1,11 +1,10 @@
 from wait_response import wait_response
+from htmlreader import htmlreader
 
 from enum import Enum
 import discord
 from urllib.request import urlopen
 import re
-
-python_docs_url = 'https://www.python.org/doc/versions/'
 
 Language = Enum('Language', 'Python Java C C_Plus_Plus C_Sharp')
 
@@ -23,9 +22,8 @@ class doc_finder(wait_response):
 			'-c#': Language.C_Sharp
 		}.get(identifier.content)
 
-		page = urlopen(python_docs_url)
-		html_bytes = page.read()
-		self.html = html_bytes.decode("utf-8")
+		html = htmlreader(self.language)
+		self.html = html.html
 
 		self.versions = self.get_versions(self.language)
 		self.channel = identifier.channel
@@ -45,6 +43,18 @@ class doc_finder(wait_response):
 					phrase = self.html[i+7:phrase_end]
 					versions.append(phrase)
 
+		if language == Language.Java:
+			start_index = self.html.find('href=')
+			end_index = self.html.find('index.html">JDK 7')
+
+			x = 0
+			for i in range(start_index, end_index):
+				if self.html[i] == 'h' and self.html[i:i+4] == 'href':
+					phrase_start = self.html.find(' ',i)
+					phrase_end = self.html.find(' ',phrase_start + 1)
+					phrase = self.html[phrase_start:phrase_end]
+					versions.append(phrase)
+
 		return versions
 
 	async def send_initial_message(self):
@@ -60,8 +70,12 @@ class doc_finder(wait_response):
 	async def send(self, message: discord.Message):
 		
 		self.waiting = False
+		mcon = re.sub('[^\d\.]', '', message.content)
 
 		if self.language == Language.Python:
-			mcon = re.sub('[^\d\.]', '', message.content)
 			if message.content in self.versions:
 				await self.channel.send('https://docs.python.org/release/' + mcon + '/\n')
+
+		if self.language == Language.Java:	
+			if message.content in self.versions:
+				await self.channel.send('https://docs.oracle.com/javase/' + mcon + '/')
