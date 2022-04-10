@@ -25,8 +25,11 @@ class doc_finder(wait_response):
 		html = htmlreader(self.language)
 		self.html = html.html
 
-		self.versions = self.get_versions(self.language)
-		self.channel = identifier.channel
+		if self.html != None:
+			self.versions = self.get_versions(self.language)
+			self.channel = identifier.channel
+		else:
+			self.waiting = False
 		
 
 	def get_versions(self, language: Language):
