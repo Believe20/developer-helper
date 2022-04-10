@@ -1,4 +1,4 @@
-from doc_finder import Language
+from bot_enums import *
 
 from urllib.request import urlopen
 

@@ -1,16 +1,13 @@
 from wait_response import wait_response
 from htmlreader import htmlreader
+from bot_enums import *
 
-from enum import Enum
 import discord
 from urllib.request import urlopen
 import re
 
-Language = Enum('Language', 'Python Java C C_Plus_Plus C_Sharp')
 
 class doc_finder(wait_response):
-
-	Versionselect = False
 
 	def __init__(self, identifier: discord.Message):
 		super().__init__()
@@ -47,7 +44,7 @@ class doc_finder(wait_response):
 					versions.append(phrase)
 
 		if language == Language.Java:
-			start_index = self.html.find('href=')
+			start_index = self.html.find('JDK')
 			end_index = self.html.find('index.html">JDK 7')
 
 			x = 0
@@ -55,7 +52,7 @@ class doc_finder(wait_response):
 				if self.html[i] == 'h' and self.html[i:i+4] == 'href':
 					phrase_start = self.html.find(' ',i)
 					phrase_end = self.html.find(' ',phrase_start + 1)
-					phrase = self.html[phrase_start:phrase_end]
+					phrase = self.html[phrase_start + 1:phrase_end]
 					versions.append(phrase)
 
 		return versions
@@ -76,9 +73,9 @@ class doc_finder(wait_response):
 		mcon = re.sub('[^\d\.]', '', message.content)
 
 		if self.language == Language.Python:
-			if message.content in self.versions:
+			if mcon in self.versions:
 				await self.channel.send('https://docs.python.org/release/' + mcon + '/\n')
 
 		if self.language == Language.Java:	
-			if message.content in self.versions:
+			if mcon in self.versions:
 				await self.channel.send('https://docs.oracle.com/javase/' + mcon + '/')
