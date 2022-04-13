@@ -1,4 +1,4 @@
-from doc_finder import doc_finder
+from finders import finder
 from wait_response import wait_response
 
 import discord
@@ -10,7 +10,7 @@ python_docs_url = 'https://www.python.org/doc/versions/'
 
 client = discord.Client()
 document_commands = ['-python', '-java', '-c', '-c++', '-c#']
-finders: List[wait_response] = []
+active_finders: List[wait_response] = []
 
 @client.event
 async def on_ready():
@@ -18,22 +18,22 @@ async def on_ready():
 
 @client.event
 async def on_message(message: discord.Message):
-	global finders
+	global active_finders
 
 	if message.author == client.user:
 		return
 
 	message.content = message.content.lower()
 
-	for f in finders:
+	for f in active_finders:
 		if f.waiting:
 			await f.send(message)
 		else:
-			finders.remove(f)
+			active_finders.remove(f)
 
 	if message.content in document_commands:
-		d = doc_finder(message)
-		finders.append(d)
+		d = finder.get(message)
+		active_finders.append(d)
 		await d.send_initial_message()
 
 	else:
